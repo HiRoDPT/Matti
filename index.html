@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Map + 地元ティー情報 = Matti</title>
+    <style>
+        #map {
+            height: 700px;
+            font: "Noto Sans JP";
+            text-align: center;
+            width: 100%;
+        }
+        .infoWindowContent {
+            display: none; /* 初期状態では説明ウィンドウを非表示 */
+            padding: 10px;
+        }
+        h1{
+            color: black;
+            font:"Noto Sans JP";
+            font-size: 50px;
+            text-align: center;
+           
+        }
+    </style>
+</head>
+<body>
+    <h1>Map + 地元ティー情報 = Matti</h1>
+        
+    <div id="map"></div>
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBNCVtNVKIPfuW2niR6dBUv-DWKDq2n8_8&callback=initMap"></script>
+    <script>
+        let map; // マップを格納する変数
+        let markers = []; // マーカーを格納する配列
+        let infoWindows = []; // インフォウィンドウを格納する配列
+
+        let markerData = [ // マーカーのデータを格納する配列
+            {
+                name: "花工房あげたけ",
+                description: "ストーリーテラー根鈴さん<br>大福に新しい価値を <iframe width='500' height='315' src='https://www.youtube.com/embed/iUuELDvsrIg' frameborder='0' allowfullscreen></iframe>",
+                lat: 35.491195257281,
+                lng: 133.7555753510134,
+                icon: 'http://maps.google.com/mapfiles/ms/icons/blue-dot.png' // 青色のアイコン
+            },
+            {
+                name: "ワク珈琲",
+                description: "ロジカル珈琲研究家<br>珈琲の焙煎をデータ化！？ <href src='https://www.google.com/maps/place/%E3%83%AF%E3%82%AF%E7%8F%88%E7%90%B2/@35.5136204,133.6507646,3a,75y,90t/data=!3m8!1e2!3m6!1sAF1QipOtIsAJ0i40sjho97s_OTiATFQ6Q6GlbnOt-vle!2e10!3e12!6shttps:%2F%2Flh5.googleusercontent.com%2Fp%2FAF1QipOtIsAJ0i40sjho97s_OTiATFQ6Q6GlbnOt-vle%3Dw203-h152-k-no!7i1477!8i1108!4m9!3m8!1s0x35567172382c37b9:0xd089fa383bf27db8!8m2!3d35.5135797!4d133.6507628!10e5!14m1!1BCgIgAQ!16s%2Fg%2F11sv3s5n6t?authuser=0&entry=ttu#'>",
+                lat: 35.51371940096421,
+                lng: 133.6507735253364,
+                icon: 'http://maps.google.com/mapfiles/ms/icons/ylw-blank.png' // 茶色のアイコン
+            },
+            {
+                name: "北条ワイン",
+                description: "ぶどう農場マニアの地域おこし協力隊田中さん<img src='https://hojyowine.jp/'>",
+                lat: 35.486594276199135,
+                lng: 133.7952128946486,
+                icon: 'http://maps.google.com/mapfiles/ms/icons/red-dot.png' // 茶色のアイコン
+            },{
+                name:"お台場いちば",
+                description:"地域の農産物の集荷直売所<br>抱えている問題：人員不足<br>課題：先行き不透明の投資",
+                lat:35.4989936997868,
+                lng:133.7622798541717,
+                icon: 'http://maps.google.com/mapfiles/ms/icons/red-dot.png' // 茶色のアイコン
+            }
+        ];
+
+        function initMap() { // Google マップを初期化する関数
+            let myHomeLatLng = {lat: 35.49378983145363, lng: 133.7555215875518}; // デフォルトの座標は自分の家の座標
+
+            map = new google.maps.Map(document.getElementById('map'), { // マップを表示する div 要素を取得して Google マップを初期化
+                center: myHomeLatLng, // マップの中心の座標を指定
+                zoom: 10 // ズームレベルを指定
+            });
+
+            // マーカーを追加
+            markerData.forEach(function(data) { // markerData 配列内の各要素に対して繰り返し処理
+                addMarker(data); // マーカーを追加する関数を呼び出し
+            });
+        }
+
+        function addMarker(data) { // マーカーを追加する関数
+            let markerLatLng = {lat: data.lat, lng: data.lng}; // マーカーの位置情報を取得
+
+            let marker = new google.maps.Marker({ // マーカーを生成
+                position: markerLatLng, // マーカーの位置を指定
+                map: map, // マーカーを表示する地図を指定
+                title: data.name // マーカーにマウスオーバーしたときに表示されるタイトルを指定
+            });
+
+            markers.push(marker); // マーカーを配列に格納
+
+            // インフォウィンドウを追加
+            let infoWindow = new google.maps.InfoWindow({ // インフォウィンドウを生成
+                content: '<h3>' + data.name + '</h3><p class="infoWindowContent">' + data.description + '</p>' // インフォウィンドウの内容を指定
+            });
+
+            infoWindows.push(infoWindow); // インフォウィンドウを配列に格納
+
+            // マーカーがクリックされたときの処理
+            marker.addListener('click', function() { // マーカーがクリックされたときのイベントリスナーを設定
+                // すべてのインフォウィンドウを閉じる
+                closeInfoWindows();
+                // クリックされたマーカーに対応するインフォウィンドウを開く
+                infoWindow.open(map, marker);
+                // クリックされたマーカーに関連する説明ウィンドウを表示
+                $('.infoWindowContent').show();
+            });
+        }
+
+        // すべてのインフォウィンドウを閉じる関数
+        function closeInfoWindows() { // すべてのインフォウィンドウを閉じる関数
+            infoWindows.forEach(function(infoWindow) { // infoWindows 配列内の各要素に対して繰り返し処理
+                infoWindow.close(); // インフォウィンドウを閉じる
+            });
+        }
+    </script>
+</body>
+</html>
